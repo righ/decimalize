@@ -11,9 +11,9 @@ class Decimalize(object):
         self.len = len(charset)
         assert self.len == len(set(charset))
 
-        self.map = {
-            char: i for i, char in enumerate(charset)
-        }
+        self.map = {}
+        for i, char in enumerate(charset):
+            self.map[char] = i
 
     def encode(self, number):
         """
@@ -22,7 +22,6 @@ class Decimalize(object):
         >>> hex.encode(255)
         'ff'
         """
-
         string = ''
         while number:
             string = self.charset[number % self.len] + string
@@ -41,4 +40,5 @@ class Decimalize(object):
         for i, char in enumerate(string):
             number += self.map[char] * (self.len ** (strlen - i))
         return number
+
 
