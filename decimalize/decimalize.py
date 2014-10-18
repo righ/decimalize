@@ -2,43 +2,48 @@
 
 CHARSET = '0123456789abcdefghijklmnopqrstuvwxyz'
 
+from .exceptions import (
+    CharsetNotUniqueError,
+    DecodeError,
+)
+
 
 class Decimalize(object):
     """decimal encode/decode manager
     """
     def __init__(self, charset=CHARSET):
         self.charset = charset
+        self.empty = type(self.charset)()
         self.len = len(charset)
-        assert self.len == len(set(charset))
+        if self.len != len(set(charset)):
+            raise CharsetNotUniqueError(
+                'charset_length(%s) != unique_char_length(%s)' % (
+                    self.len, len(set(charset))
+                )
+            )
 
         self.map = {}
         for i, char in enumerate(charset):
             self.map[char] = i
 
     def encode(self, number):
+        """encode to n-radix.
         """
-        10 -> n
-        >>> hex = Decimalize('0123456789abcdef')
-        >>> hex.encode(255)
-        'ff'
-        """
-        string = ''
+        string = self.empty
         while number:
             string = self.charset[number % self.len] + string
             number //= self.len
         return string
 
     def decode(self, string):
-        """
-        n -> 10
-        >>> hex = Decimalize('0123456789abcdef')
-        >>> hex.decode('ff')
-        255
+        """n-radix decode to decimal.
         """
         strlen = len(string) - 1
         number = 0
+
         for i, char in enumerate(string):
-            number += self.map[char] * (self.len ** (strlen - i))
+            try:
+                number += self.map[char] * (self.len ** (strlen - i))
+            except KeyError:
+                raise DecodeError(char)
         return number
-
-
